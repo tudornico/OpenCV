@@ -1,60 +1,67 @@
+import PIL
 import sys
-import pytesseract
 import numpy as np
-from PIL import Image
+import pytesseract
+import math
 sys.path.append('/usr/bin/tesseract')
 import cv2
-
-#
-
 
 if __name__ == '__main__':
     # Press the green button in the gutter to run the script.
 
+    #look around and create the base line for new threshhold
+
+
     poza1 = 'poza1.jpg'
     poza2 = 'poza2.jpg'
-    poza3 = 'Capture.PNG'
+    poza3 = 'Capture2.PNG'
     poza4 = 'Capture4.PNG'
     poza5 = 'Capture6.PNG'
-    poza6 = 'Capture2.PNG'
-    poza7 = 'Crop1.jpg'
-    img1 = cv2.imread(poza4)
-
-    # try brigthness  increase
-    # img1 = brigthness(poza1)
-    # cv2.imshow('Brigthness',img1)
-    # cv2.waitKey(0)
-
-    grayImg = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
-    # apply treshhold on grayscale img
-    cv2.imshow('Gray', grayImg)
+    counter =  'Counter2.jpeg'
+    counter1 = 'Counter.jpeg'
+    img1 = cv2.imread(counter, cv2.IMREAD_GRAYSCALE)
+    cv2.imshow(' Grayscale', img1)
     cv2.waitKey(0)
 
-    filtered = cv2.bilateralFilter(grayImg, 7, 30, 100,cv2.BORDER_DEFAULT)
-
-    _, thresh1 = cv2.threshold(filtered, 150, 220, cv2.THRESH_BINARY_INV)  # nice\
+    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(img1)
+    x, y = max_loc
+    w, h = 600, 600
+    x = max(0, x - w / 2)
+    y = max(0, y - h / 2)
+    w = min(w, img1.shape[1] - x)
+    h = min(h, img1.shape[0] - y)
+    x = math.floor(x)
+    y = math.floor(y)
+    h = math.floor(h)
+    w = math.floor(w)
+    crop = img1[y:y + h, x:x + w]
+    cv2.imshow('cropped',crop)
+    cv2.waitKey(0)
+    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(crop)
+    # _, thresh1 = cv2.threshold(crop, 150, 220, cv2.THRESH_BINARY_INV)
+    # cv2.imshow('thresh', thresh1)
+    # cv2.waitKey(0)
+    _, thresh1 = cv2.threshold(crop, max_val-35, max_val, cv2.THRESH_TOZERO)  # nice
     cv2.imshow('thresh', thresh1)
     cv2.waitKey(0)
+    _,thresh1 = cv2.threshold(thresh1 , max_val-35 , max_val, cv2.THRESH_BINARY_INV)
+    # Creating a structuring element for each of the numbers in our counter
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 3))
 
-# thresh1 = cv2.adaptiveThreshold(filtered,300,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,45,25)
-# dilate the mask  to make sure  the highlighted area is fully covered
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2))
-
-    cv2.imshow('Structure Element', kernel)
+    erode = cv2.erode(thresh1, kernel, iterations=2)
+    cv2.imshow('after erosion', erode)
     cv2.waitKey(0)
 
-    thresh  = cv2.erode(thresh1,kernel , iterations = 1)
-    cv2.imshow('after dialte' , thresh)
+    dilate = cv2.dilate(erode, kernel, iterations=1)
+    cv2.imshow('dilation', dilate)
     cv2.waitKey(0)
 
 
-    cleaned = cv2.morphologyEx(thresh , cv2.MORPH_GRADIENT , kernel , iterations = 2)
-    cv2.imshow('after ex',cleaned)
+    cleaned = cv2.morphologyEx(dilate, cv2.MORPH_TOPHAT, kernel, iterations=8)
+    cv2.imshow('after ex', cleaned)
     cv2.waitKey(0)
 
 
     pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'
     text1 = pytesseract.image_to_string(cleaned, lang='lets', config='--psm 6 -c tessedit_char_whitelist="0123456789"')
     print(text1)
-    cv2.imshow('iamge' , cleaned)
-    cv2.waitKey(0)

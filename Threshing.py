@@ -19,7 +19,7 @@ if __name__ == '__main__':
     poza5 = 'Capture6.PNG'
     counter =  'Counter2.jpeg'
     counter1 = 'Counter.jpeg'
-    img1 = cv2.imread(counter1, cv2.IMREAD_GRAYSCALE)
+    img1 = cv2.imread(counter, cv2.IMREAD_GRAYSCALE)
     cv2.imshow(' Grayscale', img1)
     cv2.waitKey(0)
 
@@ -30,7 +30,6 @@ if __name__ == '__main__':
     y = max(0, y - h / 2)
     w = min(w, img1.shape[1] - x)
     h = min(h, img1.shape[0] - y)
-    print(math.floor(x) ,math.floor( y) , h , w)
     x = math.floor(x)
     y = math.floor(y)
     h = math.floor(h)
@@ -38,30 +37,31 @@ if __name__ == '__main__':
     crop = img1[y:y + h, x:x + w]
     cv2.imshow('cropped',crop)
     cv2.waitKey(0)
-
+    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(crop)
     # _, thresh1 = cv2.threshold(crop, 150, 220, cv2.THRESH_BINARY_INV)
     # cv2.imshow('thresh', thresh1)
     # cv2.waitKey(0)
-    _, thresh1 = cv2.threshold(crop, 100, 100, cv2.THRESH_TOZERO)  # nice
+    _, thresh1 = cv2.threshold(crop, max_val-35, max_val, cv2.THRESH_TOZERO)  # nice
     cv2.imshow('thresh', thresh1)
     cv2.waitKey(0)
+    _,thresh1 = cv2.threshold(thresh1 , max_val-35 , max_val, cv2.THRESH_BINARY_INV)
     # Creating a structuring element for each of the numbers in our counter
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 1))
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
 
-    dilate = cv2.dilate(thresh1, kernel, iterations=2)
-    cv2.imshow('dilation', dilate)
-    cv2.waitKey(0)
-
-    erode = cv2.erode(dilate, kernel, iterations=1)
+    erode = cv2.erode(thresh1, kernel, iterations=2)
     cv2.imshow('after erosion', erode)
     cv2.waitKey(0)
 
+    dilate = cv2.dilate(erode, kernel, iterations=1)
+    cv2.imshow('dilation', dilate)
+    cv2.waitKey(0)
 
-    _,cleaned = cv2.morphologyEx(erode, cv2.MORPH_ERODE, kernel, iterations=2)
-    cv2.imshow('after ex', cleaned)
+
+    cleaned = cv2.morphologyEx(dilate, cv2.MORPH_TOPHAT, kernel, iterations=8)
+    cv2.imshow('after morph', cleaned)
     cv2.waitKey(0)
 
 
     pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'
-    text1 = pytesseract.image_to_string(cleaned, lang='lets', config='--psm 6 -c tessedit_char_whitelist="0123456789"')
+    text1 = pytesseract.image_to_string(dilate, lang='lets', config='--psm 6 -c tessedit_char_whitelist="0123456789"')
     print(text1)
