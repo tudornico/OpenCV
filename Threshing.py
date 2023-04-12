@@ -9,6 +9,9 @@ import cv2
 if __name__ == '__main__':
     # Press the green button in the gutter to run the script.
 
+    #look around and create the base line for new threshhold
+
+
     poza1 = 'poza1.jpg'
     poza2 = 'poza2.jpg'
     poza3 = 'Capture2.PNG'
@@ -19,9 +22,10 @@ if __name__ == '__main__':
     img1 = cv2.imread(counter1, cv2.IMREAD_GRAYSCALE)
     cv2.imshow(' Grayscale', img1)
     cv2.waitKey(0)
+
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(img1)
     x, y = max_loc
-    w, h = 700, 700
+    w, h = 600, 600
     x = max(0, x - w / 2)
     y = max(0, y - h / 2)
     w = min(w, img1.shape[1] - x)
@@ -35,19 +39,28 @@ if __name__ == '__main__':
     cv2.imshow('cropped',crop)
     cv2.waitKey(0)
 
-    _, thresh1 = cv2.threshold(crop, 150, 220, cv2.THRESH_BINARY_INV)  # nice\
+    # _, thresh1 = cv2.threshold(crop, 150, 220, cv2.THRESH_BINARY_INV)
+    # cv2.imshow('thresh', thresh1)
+    # cv2.waitKey(0)
+    _, thresh1 = cv2.threshold(crop, 100, 100, cv2.THRESH_TOZERO)  # nice
     cv2.imshow('thresh', thresh1)
     cv2.waitKey(0)
+    # Creating a structuring element for each of the numbers in our counter
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 1))
 
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2))
-
-    thresh = cv2.erode(thresh1, kernel, iterations=3)
-    cv2.imshow('after erosion', thresh)
+    dilate = cv2.dilate(thresh1, kernel, iterations=2)
+    cv2.imshow('dilation', dilate)
     cv2.waitKey(0)
 
-    cleaned = cv2.morphologyEx(thresh, cv2.MORPH_GRADIENT, kernel, iterations=3)
+    erode = cv2.erode(dilate, kernel, iterations=1)
+    cv2.imshow('after erosion', erode)
+    cv2.waitKey(0)
+
+
+    _,cleaned = cv2.morphologyEx(erode, cv2.MORPH_ERODE, kernel, iterations=2)
     cv2.imshow('after ex', cleaned)
     cv2.waitKey(0)
+
 
     pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'
     text1 = pytesseract.image_to_string(cleaned, lang='lets', config='--psm 6 -c tessedit_char_whitelist="0123456789"')
