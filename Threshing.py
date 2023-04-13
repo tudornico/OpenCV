@@ -19,7 +19,7 @@ if __name__ == '__main__':
     poza5 = 'Capture6.PNG'
     counter =  'Counter2.jpeg'
     counter1 = 'Counter.jpeg'
-    img1 = cv2.imread(counter, cv2.IMREAD_GRAYSCALE)
+    img1 = cv2.imread(counter1, cv2.IMREAD_GRAYSCALE)
     cv2.imshow(' Grayscale', img1)
     cv2.waitKey(0)
 
@@ -41,14 +41,16 @@ if __name__ == '__main__':
     # _, thresh1 = cv2.threshold(crop, 150, 220, cv2.THRESH_BINARY_INV)
     # cv2.imshow('thresh', thresh1)
     # cv2.waitKey(0)
-    _, thresh1 = cv2.threshold(crop, max_val-35, max_val, cv2.THRESH_TOZERO)  # nice
+    _, thresh1 = cv2.threshold(crop, max_val-30, max_val, cv2.THRESH_TOZERO)  # nice
     cv2.imshow('thresh', thresh1)
     cv2.waitKey(0)
-    _,thresh1 = cv2.threshold(thresh1 , max_val-35 , max_val, cv2.THRESH_BINARY_INV)
+    _,thresh1 = cv2.threshold(thresh1 , max_val-30 , max_val, cv2.THRESH_BINARY_INV)
     # Creating a structuring element for each of the numbers in our counter
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 3))
 
-    erode = cv2.erode(thresh1, kernel, iterations=2)
+    cv2.imshow('structuring element' , kernel)
+    cv2.waitKey(0)
+    erode = cv2.erode(thresh1, kernel, iterations=3)
     cv2.imshow('after erosion', erode)
     cv2.waitKey(0)
 
@@ -57,11 +59,11 @@ if __name__ == '__main__':
     cv2.waitKey(0)
 
 
-    cleaned = cv2.morphologyEx(dilate, cv2.MORPH_TOPHAT, kernel, iterations=8)
+    cleaned = cv2.morphologyEx(dilate, cv2.MORPH_TOPHAT, kernel, iterations=3)
     cv2.imshow('after morph', cleaned)
     cv2.waitKey(0)
 
 
     pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'
-    text1 = pytesseract.image_to_string(dilate, lang='lets', config='--psm 6 -c tessedit_char_whitelist="0123456789"')
+    text1 = pytesseract.image_to_string(cleaned, lang='lets', config='--psm 6 -c tessedit_char_whitelist="0123456789"')
     print(text1)
