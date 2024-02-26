@@ -3,7 +3,7 @@ import sys
 import numpy as np
 import pytesseract
 import math
-sys.path.append('/usr/bin/tesseract')
+sys.path.append('C:/Program Files/Tesseract-OCR')
 import cv2
 
 if __name__ == '__main__':
@@ -64,6 +64,6 @@ if __name__ == '__main__':
     cv2.waitKey(0)
 
 
-    pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'
+    pytesseract.pytesseract.tesseract_cmd = r'C:/Program Files/Tesseract-OCR'
     text1 = pytesseract.image_to_string(cleaned, lang='lets', config='--psm 6 -c tessedit_char_whitelist="0123456789"')
     print(text1)
