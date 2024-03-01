@@ -41,10 +41,13 @@ if __name__ == '__main__':
     # _, thresh1 = cv2.threshold(crop, 150, 220, cv2.THRESH_BINARY_INV)
     # cv2.imshow('thresh', thresh1)
     # cv2.waitKey(0)
-    _, thresh1 = cv2.threshold(crop, max_val-30, max_val, cv2.THRESH_TOZERO)  # nice
+    print(min_val , max_val )
+    # we need to find an adaptive way to thresh withouth destroying the numbers on the counter photo
+
+    _, thresh1 = cv2.threshold(crop, max_val-4*min_val, max_val, cv2.THRESH_TOZERO)  # nice
     cv2.imshow('thresh', thresh1)
     cv2.waitKey(0)
-    _,thresh1 = cv2.threshold(thresh1 , max_val-30 , max_val, cv2.THRESH_BINARY_INV)
+    _,thresh1 = cv2.threshold(thresh1 , max_val-4*min_val , max_val, cv2.THRESH_BINARY_INV)
     # Creating a structuring element for each of the numbers in our counter
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 3))
 
@@ -58,12 +61,11 @@ if __name__ == '__main__':
     cv2.imshow('dilation', dilate)
     cv2.waitKey(0)
 
-
-    cleaned = cv2.morphologyEx(dilate, cv2.MORPH_TOPHAT, kernel, iterations=3)
+    cleaned = cv2.morphologyEx(dilate, cv2.MORPH_TOPHAT, kernel, iterations=4)
     cv2.imshow('after morph', cleaned)
     cv2.waitKey(0)
 
 
-    pytesseract.pytesseract.tesseract_cmd = r'C:/Program Files/Tesseract-OCR'
+    pytesseract.pytesseract.tesseract_cmd = r'C://Program Files//Tesseract-OCR//tesseract'
     text1 = pytesseract.image_to_string(cleaned, lang='lets', config='--psm 6 -c tessedit_char_whitelist="0123456789"')
     print(text1)
